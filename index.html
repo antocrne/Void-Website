@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-accent="violet" data-tint="none">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="meta.title">Void — Apps that fade away</title>
+  <meta name="description" data-i18n-attr="content:meta.desc" content="The Void suite: a browser, notes, and soon a calendar and mail. Native on Mac, no account, no noise.">
+  <meta name="theme-color" content="#0B0B0E">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Preferences and language applied before first paint, to avoid a flash.
+    (function () {
+      var r = document.documentElement, p = {};
+      try { p = JSON.parse(localStorage.getItem('void-prefs') || '{}'); } catch (e) {}
+      if (p.theme) r.dataset.theme = p.theme;
+      if (p.accent) r.dataset.accent = p.accent;
+      if (p.tint) r.dataset.tint = p.tint;
+      var lang = p.lang;
+      if (!lang) {
+        var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'];
+        lang = 'en';
+        for (var i = 0; i < langs.length; i++) {
+          var l = String(langs[i]).toLowerCase();
+          if (l.indexOf('fr') === 0) { lang = 'fr'; break; }
+          if (l.indexOf('en') === 0) break;
+        }
+      }
+      r.lang = lang;
+      // The page is written in English; hide it briefly while French is applied.
+      if (lang !== 'en') {
+        r.classList.add('i18n-wait');
+        setTimeout(function () { r.classList.remove('i18n-wait'); }, 1500);
+      }
+    })();
+  </script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="ecl-grad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#F4F1FF"/>
+      <stop offset=".5" stop-color="#9D8FFF"/>
+      <stop offset="1" stop-color="#4B3FD0"/>
+    </linearGradient>
+    <symbol id="eclipse" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="50" fill="url(#ecl-grad)"/>
+      <circle cx="54.5" cy="45.5" r="43" fill="#07070A"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sidebar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 5v14M6 8.5h1.5M6 11h1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-reload" viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.1-5M19 4.5V9h-4.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" stroke-width="1.9"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 6.8-1.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M3 12s3.3-6 9-6c1.6 0 3 .5 4.2 1.1M21 12s-3.3 6-9 6c-1.6 0-3-.5-4.2-1.1M4 4l16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24"><path d="M9 4.5h3.5v2a1.75 1.75 0 1 0 3.5 0v-2h3.5V9h-2a1.75 1.75 0 1 0 0 3.5h2V19.5H15v-2a1.75 1.75 0 1 0-3.5 0v2H4.5V15h2a1.75 1.75 0 1 0 0-3.5h-2V4.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 5 6v5.5c0 4.3 3 7.6 7 9 4-1.4 7-4.7 7-9V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5c2.7-1 5.3-1 8 .7 2.7-1.7 5.3-1.7 8-.7v13c-2.7-1-5.3-1-8 .7-2.7-1.7-5.3-1.7-8-.7z M12 6.2v13.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-cam" viewBox="0 0 24 24"><rect x="3.5" y="7" width="12" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 10.5 5-3v9l-5-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 9.5c4-3.3 10-3.3 14 0l-1.6 2.6-3-1v-2a8 8 0 0 0-4.8 0v2l-3 1z" fill="currentColor"/></symbol>
+    <symbol id="i-arrowout" viewBox="0 0 24 24"><path d="M15 5h-8a2 2 0 0 0-2 2v8M9 9l10 10M19 13v6h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4.5 19.5h4l10-10a2.8 2.8 0 0 0-4-4l-10 10z M13 7l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.6" fill="currentColor"/><path d="m4 17 5-4.5 4 3.5 3-2.5 4 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .6-8A6 6 0 0 0 6.6 9.2 4.7 4.7 0 0 0 7 18.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-md" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 15V9l2.5 3L11 9v6M16 9v6m-2.2-2.2L16 15l2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-iphone" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 5.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-finger" viewBox="0 0 24 24"><path d="M7.5 18c.9-1.9 1.3-4 1.3-6.2a3.2 3.2 0 0 1 6.4 0c0 1.5-.1 2.9-.4 4.3M12 11.8c0 3-.6 5.8-1.9 8.2M17.6 15.5c.2-1.2.3-2.4.3-3.7a5.9 5.9 0 0 0-10.2-4M4.6 15c.4-1 .6-2 .6-3.2 0-1.2.3-2.3.8-3.3M14.6 19.8c.3-.7.6-1.5.8-2.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="4.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 9v9a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18V9M10 13h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-house" viewBox="0 0 24 24"><path d="M4.5 10.5 12 4.5l7.5 6V19a1 1 0 0 1-1 1h-4v-5.5h-5V20h-4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-case" viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5M3.5 12.5h17" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24"><path d="M21 12.5 13.5 10V5a1.5 1.5 0 0 0-3 0v5L3 12.5v2l7.5-1.5v4l-2 1.5v1.5l3.5-1 3.5 1v-1.5l-2-1.5v-4L21 14.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3.5 6.5 5-2 7 2.5 5-2v13l-5 2-7-2.5-5 2zM8.5 4.5v13M15.5 7v13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tray" viewBox="0 0 24 24"><path d="M3.5 13.5 6 6h12l2.5 7.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18zM3.5 13.5H8l1.2 2h5.6l1.2-2h4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- Navigation -->
+<header class="nav" id="nav">
+  <a class="nav-brand" href="#top" data-i18n-attr="aria-label:nav.home" aria-label="Void, back to top">
+    <svg class="nav-logo"><use href="#eclipse"/></svg>
+    <span>Void</span>
+  </a>
+  <nav class="nav-links" data-i18n-attr="aria-label:nav.sections" aria-label="Sections">
+    <a href="#browser" data-i18n="nav.browser">Browser</a>
+    <a href="#notes" data-i18n="nav.notes">Notes</a>
+    <a href="#soon" data-i18n="nav.soon">Coming soon</a>
+    <a href="#colors" data-i18n="nav.colors">Colors</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="lang-btn" type="button" data-lang-toggle data-i18n-attr="aria-label:nav.langLabel" aria-label="Passer en français">
+      <span data-i18n="nav.langShort">FR</span>
+    </button>
+    <button class="icon-btn" id="theme-toggle" type="button" data-i18n-attr="aria-label:nav.theme" aria-label="Toggle light or dark theme">
+      <svg class="when-dark"><use href="#i-sun"/></svg>
+      <svg class="when-light"><use href="#i-moon"/></svg>
+    </button>
+    <a class="btn btn-primary btn-sm" href="#download" data-i18n="nav.download">Download</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ======================= HERO ======================= -->
+<section class="hero" id="top" data-hero>
+  <div class="hero-sticky">
+    <div class="hero-halo" aria-hidden="true"></div>
+    <div class="ecl-wrap" data-ecl>
+      <div class="ecl" aria-hidden="true">
+        <div class="ecl-ring"></div>
+        <div class="ecl-core"></div>
+      </div>
+    </div>
+    <div class="hero-copy" data-hero-copy>
+      <p class="eyebrow" data-i18n="hero.eyebrow">The Void suite</p>
+      <h1 class="hero-title" data-i18n="hero.title">Apps that <span class="fade-word">fade away</span>.</h1>
+      <p class="hero-sub" data-i18n="hero.sub">A browser, notes. Soon a calendar and mail. Native on Mac, no account, no noise — all that's left is what you do.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#download"><svg><use href="#i-download"/></svg><span data-i18n="hero.cta">Download for Mac</span></a>
+        <a class="btn btn-ghost" href="#suite" data-i18n="hero.cta2">Explore the suite</a>
+      </div>
+    </div>
+    <p class="hero-void-line" data-hero-void data-i18n="void.line">Nothing here. <span>On purpose.</span></p>
+    <div class="scroll-hint" data-hero-hint aria-hidden="true"><span></span></div>
+  </div>
+</section>
+
+<!-- ======================= MANIFESTO ======================= -->
+<section class="manifesto force-dark" data-i18n-attr="aria-label:manifesto.label" aria-label="Manifesto">
+  <p class="manifesto-text" data-words data-i18n="manifesto.text">Void starts from a simple idea: the tool should disappear behind what you're doing. A page, a few pixels around it. No account, no server, no noise. Just the page, the note, the day.</p>
+</section>
+
+<!-- ======================= THE SUITE ======================= -->
+<section class="suite section" id="suite">
+  <div class="container">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow" data-i18n="suite.eyebrow">The suite</p>
+      <h2 class="h2" data-i18n="suite.title">One way of doing things.<br><span class="muted">Four apps.</span></h2>
+      <p class="lead" data-i18n="suite.lead">Same pastel palette, same neutral or tinted frame, same dark theme by default. They talk to each other, and to no one else.</p>
+    </header>
+
+    <div class="suite-grid">
+      <a class="app-card spot" href="#browser" data-reveal style="--d:0">
+        <div class="app-icon">
+          <svg viewBox="0 0 100 100"><rect width="100" height="100" rx="23" class="ai-bg"/><use href="#eclipse" x="22" y="22" width="56" height="56"/></svg>
+        </div>
+        <h3>Void</h3>
+        <p data-i18n="suite.void">A browser that fades away.</p>
+        <span class="tag" data-i18n="tag.preview">Preview 0.2</span>
+      </a>
+      <a class="app-card spot" href="#notes" data-reveal style="--d:1">
+        <div class="app-icon">
+          <svg viewBox="0 0 100 100"><rect width="100" height="100" rx="23" class="ai-bg"/><use href="#eclipse" x="24" y="16" width="30" height="30"/><g class="ai-lines"><rect x="24" y="56" width="52" height="5" rx="2.5"/><rect x="24" y="67" width="44" height="5" rx="2.5"/><rect x="24" y="78" width="30" height="5" rx="2.5"/></g></svg>
+        </div>
+        <h3>Void Notes</h3>
+        <p data-i18n="suite.notes">Notes that fade behind the words.</p>
+        <span class="tag" data-i18n="tag.preview">Preview 0.2</span>
+      </a>
+      <a class="app-card spot" href="#soon" data-reveal style="--d:2">
+        <div class="app-icon">
+          <svg viewBox="0 0 100 100"><rect width="100" height="100" rx="23" class="ai-bg"/><g class="ai-dots"></g><use href="#eclipse" x="52" y="18" width="30" height="30"/></svg>
+        </div>
+        <h3>Void Calendar</h3>
+        <p data-i18n="suite.calendar">A calendar that fades away.</p>
+        <span class="tag tag-soon" data-i18n="tag.soon">Coming soon</span>
+      </a>
+      <a class="app-card spot" href="#soon" data-reveal style="--d:3">
+        <div class="app-icon">
+          <svg viewBox="0 0 100 100"><rect width="100" height="100" rx="23" class="ai-bg"/><rect x="20" y="34" width="60" height="42" rx="7" class="ai-env"/><path d="M22 38 50 58 78 38" class="ai-flap"/><use href="#eclipse" x="58" y="16" width="26" height="26"/></svg>
+        </div>
+        <h3>Void Mail</h3>
+        <p data-i18n="suite.mail">Mail, in silence.</p>
+        <span class="tag tag-soon" data-i18n="tag.soon">Coming soon</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= VOID BROWSER ======================= -->
+<section class="product" id="browser">
+  <div class="container">
+    <header class="product-head" data-reveal>
+      <svg class="product-logo"><use href="#eclipse"/></svg>
+      <h2 class="display">Void</h2>
+      <p class="display-sub" data-i18n="browser.tagline">A browser that fades away.</p>
+      <p class="lead" data-i18n="browser.lead">One page, a few pixels of chrome around it, nothing else. Built on WebKit, the engine of macOS — no Chromium, no Electron.</p>
+      <ul class="stats">
+        <li><b data-count="9" data-prefix="≈ ">≈ 9</b><span data-i18n="browser.stat1">MB, the whole app</span></li>
+        <li><b>0</b><span data-i18n="browser.stat2">external dependencies</span></li>
+        <li><b>Mac</b><span data-i18n="browser.stat3">iPhone and iPad too</span></li>
+      </ul>
+    </header>
+  </div>
+
+  <!-- Scrollytelling -->
+  <div class="story" data-story data-steps="7">
+    <div class="story-sticky">
+      <div class="container story-grid">
+        <ol class="story-steps" data-story-steps>
+          <li class="active"><span class="k">01</span><h3 data-i18n="step1.t">One page. Nothing else.</h3><p data-i18n="step1.p">The chrome stays out of the way: a sidebar, the page, and a new tab that asks nothing of you.</p></li>
+          <li><span class="k">02</span><h3 data-i18n="step2.t">Tabs on the side, or on top.</h3><p data-i18n="step2.p">Sidebar or top bar, your call. Switch without losing the page, mid-animation.</p></li>
+          <li><span class="k">03</span><h3 data-i18n="step3.t">Spaces that are truly separate.</h3><p data-i18n="step3.p">Personal, Work: each space has its own tabs and its own storage. Signed in here, not there. A two-finger swipe to move between them.</p></li>
+          <li><span class="k">04</span><h3 data-i18n="step4.t">The address bar does the math.</h3><p data-i18n="step4.p">“10 km in miles”, “20% of 150”, “√2”: the result shows up as you type. Everything is computed on your Mac, nothing is sent.</p></li>
+          <li><span class="k">05</span><h3 data-i18n="step5.t">Two pages side by side.</h3><p data-i18n="step5.p"><kbd>⌥⌘S</kbd> brings the previous tab alongside. Click a page to give it focus.</p></li>
+          <li><span class="k">06</span><h3 data-i18n="step6.t">A tint of your own.</h3><p data-i18n="step6.p">Neutral, or one of eight pastel tints, with two soft glows. The frame turns slightly translucent.</p></li>
+          <li><span class="k">07</span><h3 data-i18n="step7.t">Your meeting follows you.</h3><p data-i18n="step7.p">During a Meet, Teams or Zoom call, leave the tab: the meeting moves into a small floating window, controls included.</p></li>
+        </ol>
+
+        <div class="story-stage">
+          <div class="mock" data-mock data-w="1000" data-h="640">
+            <div class="win browser" data-browser data-step="0">
+              <div class="b-halos" aria-hidden="true"></div>
+
+              <!-- Top bar (tabs on top) -->
+              <div class="b-top">
+                <span class="lights"><i></i><i></i><i></i></span>
+                <svg class="ic"><use href="#i-sidebar"/></svg>
+                <div class="b-toptabs">
+                  <span class="tt active"><b class="fav" style="--fc:var(--acc-d)">W</b><span data-i18n="mock.mars">Mars (planet) — Wikipedia</span></span>
+                  <span class="tt"><b class="fav">W</b>WebKit</span>
+                  <span class="tt"><b class="fav">A</b>Apple</span>
+                  <span class="tt small"><b class="fav">D</b></span>
+                  <span class="tt-plus"><svg class="ic"><use href="#i-plus"/></svg></span>
+                </div>
+                <div class="b-topaddr"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="mock.marsUrl">en.wikipedia.org/wiki/Mars</span></div>
+              </div>
+
+              <!-- Sidebar -->
+              <aside class="b-side">
+                <div class="b-side-top">
+                  <span class="lights"><i></i><i></i><i></i></span>
+                  <span class="b-tools"><svg class="ic"><use href="#i-sidebar"/></svg><svg class="ic dim"><use href="#i-left"/></svg><svg class="ic dim"><use href="#i-right"/></svg><svg class="ic"><use href="#i-reload"/></svg></span>
+                </div>
+                <div class="b-addr"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="mock.search">Search or enter address</span></div>
+                <div class="b-pins"><span><b class="fav">Y</b></span><span><b class="fav">G</b></span><span><b class="fav">W</b></span></div>
+                <div class="b-spaces">
+                  <div class="b-space-track" data-space-track>
+                    <div class="b-space">
+                      <div class="b-space-name"><span class="sp-dot"></span><span data-i18n="mock.personal">Personal</span><svg class="ic r"><use href="#i-folder"/></svg></div>
+                      <div class="row newtab"><svg class="ic"><use href="#i-plus"/></svg><span data-i18n="mock.newTab">New tab</span></div>
+                      <div class="row folder"><svg class="ic"><use href="#i-folder"/></svg><b data-i18n="mock.later">Read later</b><svg class="ic r"><use href="#i-chev"/></svg></div>
+                      <div class="row"><b class="fav">W</b><span data-i18n="mock.blackhole">Black hole — Wikipedia</span></div>
+                      <div class="row"><b class="fav">D</b>Swift Documentation</div>
+                      <hr>
+                      <div class="row sel"><b class="fav">W</b><span data-i18n="mock.mars">Mars (planet) — Wikipedia</span></div>
+                      <div class="row"><b class="fav">W</b>WebKit</div>
+                      <div class="row"><b class="fav">A</b>Apple</div>
+                      <div class="row"><b class="fav">D</b>Swift - Apple Developer</div>
+                    </div>
+                    <div class="b-space">
+                      <div class="b-space-name"><span class="sp-dot sq"></span><span data-i18n="mock.work">Work</span><svg class="ic r"><use href="#i-folder"/></svg></div>
+                      <div class="row newtab"><svg class="ic"><use href="#i-plus"/></svg><span data-i18n="mock.newTab">New tab</span></div>
+                      <div class="row sel"><b class="fav">L</b><span data-i18n="mock.w1">Linear — Roadmap</span></div>
+                      <div class="row"><b class="fav">G</b>GitHub — antocrne/Void</div>
+                      <div class="row"><b class="fav">M</b><span data-i18n="mock.w3">Shared calendar</span></div>
+                      <div class="row"><b class="fav">F</b><span data-i18n="mock.w4">Figma — Mockups</span></div>
+                      <div class="row"><b class="fav">N</b><span data-i18n="mock.w5">Notion — Meeting notes</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="b-side-bottom">
+                  <svg class="ic"><use href="#i-eyeoff"/></svg><svg class="ic"><use href="#i-download"/></svg><svg class="ic"><use href="#i-puzzle"/></svg>
+                  <span class="b-dots"><i class="on"></i><i></i></span>
+                  <svg class="ic"><use href="#i-plus"/></svg>
+                </div>
+              </aside>
+
+              <!-- Page area -->
+              <div class="b-page">
+                <div class="pane pane-a">
+                  <div class="pg pg-newtab">
+                    <svg class="nt-ecl"><use href="#eclipse"/></svg>
+                    <p class="nt-title" data-i18n="void.short">Nothing here. On purpose.</p>
+                    <p class="nt-sub" data-i18n="mock.ntSub">⌘T to open a tab · ⌘⇧N for a private window</p>
+                    <div class="nt-field"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="mock.search">Search or enter address</span><i class="caret"></i></div>
+                  </div>
+                  <div class="pg pg-article">
+                    <div class="art-hero"><div class="planet"></div></div>
+                    <div class="art-body">
+                      <div class="sk h"></div>
+                      <div class="sk w90"></div><div class="sk w95"></div><div class="sk w70"></div>
+                      <div class="sk w85 gap"></div><div class="sk w90"></div><div class="sk w60"></div>
+                    </div>
+                  </div>
+                  <div class="pg pg-docs pg-work">
+                    <div class="docs-side"><div class="sk w60 acc"></div><div class="sk w70"></div><div class="sk w50"></div><div class="sk w65"></div><div class="sk w40"></div></div>
+                    <div class="docs-main">
+                      <div class="sk h short"></div>
+                      <div class="kanban"><i><b></b><b></b><b class="acc"></b></i><i><b></b><b class="acc"></b></i><i><b></b><b></b><b></b></i></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="pane pane-b">
+                  <div class="pg pg-docs">
+                    <div class="docs-side"><div class="sk w70"></div><div class="sk w50"></div><div class="sk w60 acc"></div><div class="sk w40"></div><div class="sk w55"></div></div>
+                    <div class="docs-main">
+                      <div class="sk h short"></div>
+                      <div class="code"><i style="--w:60%"></i><i style="--w:80%;--c:var(--acc-d)"></i><i style="--w:45%"></i><i style="--w:70%"></i><i style="--w:30%;--c:#91CFA3"></i></div>
+                      <div class="sk w90"></div><div class="sk w75"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Command bar -->
+                <div class="cmd" data-cmd>
+                  <div class="cmd-input"><svg class="ic"><use href="#i-search"/></svg><span data-cmd-text></span><i class="caret"></i></div>
+                  <div class="cmd-rows">
+                    <div class="cmd-row result" data-cmd-result><span class="cmd-eq">=</span><span data-cmd-value></span><kbd data-i18n="mock.copy">↓ ↩ copy</kbd></div>
+                    <div class="cmd-row"><svg class="ic"><use href="#i-search"/></svg><span><span data-i18n="mock.searchFor">Search for</span> “<span data-cmd-echo></span>”</span><kbd>↩</kbd></div>
+                    <div class="cmd-row dim"><b class="fav">W</b><span data-i18n="mock.mars">Mars (planet) — Wikipedia</span><em data-i18n="mock.tab">Tab</em></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating meeting window -->
+              <div class="pip" aria-hidden="true">
+                <div class="pip-grid">
+                  <div class="pip-tile" style="--h:285"><span class="av">CL</span><em>Camille</em></div>
+                  <div class="pip-tile talk" style="--h:150"><span class="av">AN</span><em>Antoine</em></div>
+                  <div class="pip-tile" style="--h:55"><span class="av">LÉ</span><em>Léa</em></div>
+                  <div class="pip-tile" style="--h:235"><span class="av">MA</span><em>Marc</em></div>
+                </div>
+                <div class="pip-bar">
+                  <span class="pip-back"><svg class="ic"><use href="#i-arrowout"/></svg></span>
+                  <span class="pip-btns"><i><svg class="ic"><use href="#i-mic"/></svg></i><i><svg class="ic"><use href="#i-cam"/></svg></i><i class="hang"><svg class="ic"><use href="#i-phone"/></svg></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="story-progress" aria-hidden="true"><i data-story-bar></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bento -->
+  <div class="container">
+    <div class="bento">
+      <article class="tile tile-wide spot" data-reveal>
+        <div class="tile-copy">
+          <p class="tile-k"><svg class="ic"><use href="#i-shield"/></svg><span data-i18n="b1.k">Built-in blocker</span></p>
+          <h3 data-i18n="b1.t">Ads don't even load.</h3>
+          <p data-i18n="b1.p">Around 150 rules compiled by WebKit, applied before the page loads, without scripts. Can be turned off per site.</p>
+        </div>
+        <div class="viz viz-block" aria-hidden="true">
+          <div class="vb-page">
+            <div class="sk h short"></div>
+            <div class="vb-ad a1"><span data-i18n="b1.ad">Ad</span></div>
+            <div class="sk w90"></div><div class="sk w80"></div>
+            <div class="vb-ad a2"><span data-i18n="b1.ad">Ad</span></div>
+            <div class="sk w95"></div><div class="sk w60"></div>
+          </div>
+          <div class="vb-count"><b data-count="150" data-prefix="≈ ">0</b><span data-i18n="b1.count">rules, compiled once</span></div>
+        </div>
+      </article>
+
+      <article class="tile spot" data-reveal style="--d:1">
+        <div class="tile-copy">
+          <p class="tile-k"><svg class="ic"><use href="#i-book"/></svg><span data-i18n="b2.k">Reader mode</span> · <kbd>⌘⇧R</kbd></p>
+          <h3 data-i18n="b2.t">The article, and only the article.</h3>
+        </div>
+        <div class="viz viz-reader" aria-hidden="true">
+          <div class="vr-doc">
+            <i class="vr-noise n1"></i><i class="vr-noise n2"></i><i class="vr-noise n3"></i>
+            <i class="vr-title"></i>
+            <i class="vr-img"></i>
+            <i class="vr-l" style="--w:92%"></i><i class="vr-l" style="--w:86%"></i><i class="vr-l" style="--w:94%"></i><i class="vr-l" style="--w:58%"></i>
+          </div>
+        </div>
+      </article>
+
+      <article class="tile spot" data-reveal style="--d:2">
+        <div class="tile-copy">
+          <p class="tile-k"><svg class="ic"><use href="#i-puzzle"/></svg><span data-i18n="b3.k">Chrome extensions</span></p>
+          <h3 data-i18n="b3.t">Straight from the Chrome Web Store.</h3>
+          <p data-i18n="b3.p">The “Add to Chrome” button becomes “Add to Void”.</p>
+        </div>
+        <div class="viz viz-ext" aria-hidden="true">
+          <div class="ve-btn"><span class="ve-a" data-i18n="b3.a">Add to Chrome</span><span class="ve-b"><svg class="ic"><use href="#i-check"/></svg><span data-i18n="b3.b">Add to Void</span></span></div>
+        </div>
+      </article>
+
+      <article class="tile spot" data-reveal style="--d:1">
+        <div class="tile-copy">
+          <p class="tile-k"><svg class="ic"><use href="#i-moon"/></svg><span data-i18n="b4.k">Sleeping tabs</span></p>
+          <h3 data-i18n="b4.t">Idle? It sleeps.</h3>
+          <p data-i18n="b4.p">After 30 minutes, a tab frees its memory and comes back to the same spot with one click.</p>
+        </div>
+        <div class="viz viz-sleep" aria-hidden="true">
+          <div class="vs-row"><b class="fav">Y</b><i></i><span class="z">z</span></div>
+          <div class="vs-row"><b class="fav">G</b><i></i><span class="z">z</span></div>
+          <div class="vs-row live"><b class="fav">W</b><i></i></div>
+          <div class="vs-mem"><span data-i18n="b4.mem">Memory</span><div><i></i></div></div>
+        </div>
+      </article>
+
+      <article class="tile spot private-tile" data-reveal style="--d:2">
+        <div class="tile-copy">
+          <p class="tile-k"><svg class="ic"><use href="#i-eyeoff"/></svg><span data-i18n="b5.k">Private windows</span> · <kbd>⌘⇧N</kbd></p>
+          <h3 data-i18n="b5.t">Closed, forgotten.</h3>
+          <p data-i18n="b5.p">In-memory storage, destroyed when the window closes. A slate frame you can't mistake.</p>
+        </div>
+        <div class="viz viz-private" aria-hidden="true">
+          <div class="vp-win"><span class="lights"><i></i><i></i><i></i></span><span class="vp-badge"><svg class="ic"><use href="#i-eyeoff"/></svg><span data-i18n="b5.badge">Private</span></span></div>
+        </div>
+      </article>
+
+      <article class="tile tile-wide tile-num spot" data-reveal>
+        <div class="tile-copy">
+          <p class="tile-k" data-i18n="b6.k">Light, by design</p>
+          <h3 data-i18n="b6.t">Your Mac already has the engine. Void brings only the rest.</h3>
+          <p data-i18n="b6.p">A single web view is created at launch; other tabs sleep until you click them. Void's scripts live in an isolated world, invisible to pages.</p>
+        </div>
+        <div class="bignum"><b data-count="9" data-prefix="≈ ">≈ 9</b><span data-i18n="b6.unit">MB</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= VOID NOTES ======================= -->
+<section class="product" id="notes">
+  <div class="container">
+    <header class="product-head" data-reveal>
+      <svg class="product-logo" viewBox="0 0 100 100"><use href="#eclipse"/></svg>
+      <h2 class="display">Void Notes</h2>
+      <p class="display-sub" data-i18n="notes.tagline">Notes that fade behind the words.</p>
+      <p class="lead" data-i18n="notes.lead">A list, some text, and formatting happens as you type. Saved on your Mac, automatically. No account.</p>
+    </header>
+
+    <div class="notes-demo" data-reveal>
+      <div class="mock" data-mock data-w="1000" data-h="600">
+        <div class="win notes">
+          <aside class="n-side">
+            <div class="n-side-top"><span class="lights"><i></i><i></i><i></i></span><svg class="ic acc"><use href="#i-sidebar"/></svg></div>
+            <div class="b-addr"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="nmock.search">Search in Personal</span></div>
+            <div class="n-tree">
+              <div class="row"><svg class="ic chev"><use href="#i-right"/></svg><svg class="ic"><use href="#i-tray"/></svg><span data-i18n="nmock.all">All notes</span></div>
+              <div class="row"><svg class="ic chev"><use href="#i-right"/></svg><svg class="ic"><use href="#i-house"/></svg><span data-i18n="nmock.home">Home</span></div>
+              <div class="row"><svg class="ic chev"><use href="#i-right"/></svg><svg class="ic"><use href="#i-case"/></svg><span data-i18n="mock.work">Work</span></div>
+              <div class="row"><svg class="ic chev open"><use href="#i-right"/></svg><svg class="ic"><use href="#i-plane"/></svg><span data-i18n="nmock.travel">Travel</span></div>
+              <div class="row ind"><svg class="ic chev open"><use href="#i-right"/></svg><svg class="ic"><use href="#i-map"/></svg>Portugal</div>
+              <div class="row ind2 sel"><span data-i18n="nmock.lisbon">Travel journal — Lisbon</span><em data-i18n="nmock.time">3:41 PM</em></div>
+              <div class="row plain"><span data-i18n="nmock.books">Books to read</span><em data-i18n="nmock.date">Aug 22</em></div>
+            </div>
+          </aside>
+          <div class="n-page">
+            <div class="n-doc" data-typer data-i18n-attr="aria-label:nmock.label" aria-label="Demo: a note formatting itself as it's typed"></div>
+          </div>
+        </div>
+      </div>
+      <div class="md-chips" aria-hidden="true">
+        <span data-chip="h1"><code>#</code><span data-i18n="chip.h1">Title</span></span>
+        <span data-chip="h2"><code>##</code><span data-i18n="chip.h2">Heading</span></span>
+        <span data-chip="li"><code>-</code><span data-i18n="chip.li">List</span></span>
+        <span data-chip="todo"><code>- [ ]</code><span data-i18n="chip.todo">Checkbox</span></span>
+        <span data-chip="b"><code>**</code><span data-i18n="chip.b">Bold</span></span>
+        <span data-chip="i"><code>*</code><span data-i18n="chip.i">Italic</span></span>
+        <span data-chip="mark"><code>==</code><span data-i18n="chip.mark">Highlight</span></span>
+        <span data-chip="quote"><code>&gt;</code><span data-i18n="chip.quote">Quote</span></span>
+      </div>
+    </div>
+
+    <!-- Feature rows -->
+    <div class="feature-row" data-reveal>
+      <div class="fr-copy">
+        <p class="tile-k"><svg class="ic"><use href="#i-wave"/></svg><span data-i18n="listen.k">Listen</span> · <kbd>⇧⌘D</kbd></p>
+        <h3 class="h3" data-i18n="listen.t">Listen, transcribe, summarize.</h3>
+        <p data-i18n="listen.p">The microphone, your Mac's audio — a call, a video — or both. What's said is written sentence by sentence, voices are told apart, and Apple Intelligence writes a summary. On device: nothing you hear leaves.</p>
+        <ul class="ticks">
+          <li data-i18n="listen.l1">Three tabs: Notes, Transcript, Summary</li>
+          <li data-i18n="listen.l2">Recording kept, ≈ 10 MB per hour</li>
+          <li data-i18n="listen.l3">“Me” and “Them”, or named voices</li>
+        </ul>
+      </div>
+      <div class="mock fr-mock" data-mock data-w="640" data-h="440">
+        <div class="win listen" data-listen>
+          <div class="l-head">
+            <p class="l-title" data-i18n="lmock.title">Product review</p>
+            <p class="l-meta" data-i18n="lmock.meta">Today · 10:00 AM</p>
+            <div class="l-tabs"><span data-i18n="lmock.notes">Notes</span><span class="on" data-ltab="t" data-i18n="lmock.trans">Transcript</span><span data-ltab="r" data-i18n="lmock.sum">Summary</span><i class="l-ind"></i></div>
+          </div>
+          <div class="l-body">
+            <div class="l-pane l-trans" data-ltrans></div>
+            <div class="l-pane l-sum" data-lsum></div>
+          </div>
+          <div class="l-bar">
+            <span class="rec"></span><span class="l-lab" data-i18n="lmock.bar">Listening · mic and Mac audio</span>
+            <span class="l-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span class="l-time" data-ltime>12:04</span>
+            <span class="l-stop" data-i18n="lmock.stop">Stop</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row rev" data-reveal>
+      <div class="fr-copy">
+        <p class="tile-k"><svg class="ic"><use href="#i-lock"/></svg><span data-i18n="lock.k">Lock</span> · <kbd>⇧⌘L</kbd></p>
+        <h3 class="h3" data-i18n="lock.t">Hidden instantly. Touch ID to open it again.</h3>
+        <p data-i18n="lock.p">A locked note disappears without asking anything. To read it, Touch ID — or your Mac's password. The app never sees your fingerprint or your password.</p>
+      </div>
+      <div class="mock fr-mock" data-mock data-w="640" data-h="440">
+        <div class="win locknote" data-lock>
+          <div class="ln-doc">
+            <p class="ln-title" data-i18n="lockm.title">Codes and references</p>
+            <p class="ln-meta" data-i18n="lockm.meta">Edited yesterday at 6:20 PM</p>
+            <div class="ln-text">
+              <p data-i18n="lockm.l1">Intercom: building B, second door.</p>
+              <p data-i18n="lockm.l2">Studio Wi-Fi: ask Léa.</p>
+              <p data-i18n="lockm.l3">Member number: see the pale blue card.</p>
+              <p data-i18n="lockm.l4">Storage unit: box 14, aisle C.</p>
+            </div>
+          </div>
+          <div class="ln-veil">
+            <div class="ln-lock"><svg class="ic"><use href="#i-lock"/></svg></div>
+            <p data-i18n="lockm.locked">Locked note</p>
+            <span class="ln-btn"><svg class="ic"><use href="#i-finger"/></svg><span data-i18n="lockm.btn">Unlock with Touch ID</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-row" data-reveal>
+      <div class="fr-copy">
+        <p class="tile-k">Void + Void Notes · <kbd>⌘⇧M</kbd></p>
+        <h3 class="h3" data-i18n="bridge.t">From browser to note, in one gesture.</h3>
+        <p data-i18n="bridge.p">Select a passage in Void, right-click, “Send to Void Notes”: the text arrives with its title and link. Images too. Into a new note, or at the end of an existing one.</p>
+      </div>
+      <div class="mock fr-mock" data-mock data-w="640" data-h="440">
+        <div class="win bridge" data-bridge>
+          <div class="br-browser">
+            <div class="br-bar"><span class="lights"><i></i><i></i><i></i></span><span class="br-url" data-i18n="bmock.url">en.wikipedia.org</span></div>
+            <div class="br-page">
+              <div class="sk h short"></div>
+              <p class="br-text" data-i18n="bmock.text">Mars is the fourth planet from the Sun. <span class="br-sel">Its red color comes from the iron oxide on its surface.</span> It has two small moons.</p>
+              <div class="sk w80"></div><div class="sk w60"></div>
+            </div>
+            <div class="br-menu">
+              <span data-i18n="bmock.copy">Copy</span>
+              <span data-i18n="bmock.search">Search for “Its red color…”</span>
+              <span class="hl"><svg class="ic"><use href="#i-pen"/></svg><span data-i18n="bmock.send">Send to Void Notes</span></span>
+            </div>
+          </div>
+          <div class="br-fly"><svg class="ic"><use href="#i-pen"/></svg><span data-i18n="bmock.fly">Mars (planet)</span></div>
+          <div class="br-notes">
+            <div class="br-bar"><span class="lights"><i></i><i></i><i></i></span><span class="br-url">Void Notes</span></div>
+            <div class="br-list">
+              <div class="br-new"><b data-i18n="mock.mars">Mars (planet) — Wikipedia</b><span data-i18n="bmock.newp">Its red color comes from the iron oxide…</span></div>
+              <div class="br-item"><b data-i18n="nmock.lisbon">Travel journal — Lisbon</b><span data-i18n="bmock.i1">Three days in October…</span></div>
+              <div class="br-item"><b data-i18n="nmock.books">Books to read</b><span data-i18n="bmock.i2">The Tartar Steppe…</span></div>
+              <div class="br-item"><b data-i18n="bmock.groceries">Groceries</b><span data-i18n="bmock.i3">Milk, lemons, bread…</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mini-grid">
+      <div class="mini spot" data-reveal style="--d:0"><svg class="ic"><use href="#i-pen"/></svg><h4 data-i18n="m1.t">Quick note</h4><p data-i18n="m1.p">From the menu bar, without leaving what you're doing.</p></div>
+      <div class="mini spot" data-reveal style="--d:1"><svg class="ic"><use href="#i-image"/></svg><h4 data-i18n="m2.t">Image album</h4><p data-i18n="m2.p">One large image and smaller ones, under the title.</p></div>
+      <div class="mini spot" data-reveal style="--d:2"><svg class="ic"><use href="#i-md"/></svg><h4>Markdown</h4><p data-i18n="m3.p">Paste it and it arrives formatted. Export it and it reads anywhere.</p></div>
+      <div class="mini spot" data-reveal style="--d:3"><svg class="ic"><use href="#i-cloud"/></svg><h4 data-i18n="m4.t">Sync</h4><p data-i18n="m4.p">Optional, through an iCloud Drive folder. No server of ours.</p></div>
+      <div class="mini spot" data-reveal style="--d:4"><svg class="ic"><use href="#i-folder"/></svg><h4 data-i18n="m5.t">Spaces and folders</h4><p data-i18n="m5.p">Subfolders, thirty icons, pinned notes, archives.</p></div>
+      <div class="mini spot" data-reveal style="--d:5"><svg class="ic"><use href="#i-iphone"/></svg><h4 data-i18n="m6.t">On iPhone</h4><p data-i18n="m6.p">The same notes, and listening that keeps going with the screen locked.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= COMING SOON ======================= -->
+<section class="section soon" id="soon">
+  <div class="container">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow" data-i18n="soon.eyebrow">Coming soon to the suite</p>
+      <h2 class="h2" data-i18n="soon.title">Your day,<br><span class="muted">and your mail.</span></h2>
+    </header>
+
+    <div class="soon-grid">
+      <article class="soon-card spot" data-reveal>
+        <div class="soon-copy">
+          <span class="tag tag-soon" data-i18n="tag.soon">Coming soon</span>
+          <h3>Void Calendar</h3>
+          <p data-i18n="cal.p">A calendar that fades away. It works from the first launch, with no account and no permissions. Your iCloud or Google calendars can be added if you want.</p>
+        </div>
+        <div class="cal" aria-hidden="true">
+          <div class="cal-head">
+            <span data-i18n="cal.d1">Mon 12</span><span class="today"><span data-i18n="cal.d2">Tue</span> <b>13</b></span><span data-i18n="cal.d3">Wed 14</span><span data-i18n="cal.d4">Thu 15</span><span data-i18n="cal.d5">Fri 16</span>
+          </div>
+          <div class="cal-grid">
+            <i class="ev" style="--c:2;--t:8;--h:5;--hue:235;--i:0">Stand-up</i>
+            <i class="ev" style="--c:3;--t:8;--h:5;--hue:235;--i:1">Stand-up</i>
+            <i class="ev" style="--c:5;--t:8;--h:5;--hue:235;--i:2">Stand-up</i>
+            <i class="ev" style="--c:2;--t:16;--h:14;--hue:235;--i:3" data-i18n="lmock.title">Product review</i>
+            <i class="ev" style="--c:2;--t:36;--h:14;--hue:285;--i:4" data-i18n="cal.e1">Lunch with Léa</i>
+            <i class="ev" style="--c:3;--t:46;--h:30;--hue:235;--i:5" data-i18n="cal.e2">Workshop</i>
+            <i class="ev" style="--c:4;--t:66;--h:18;--hue:150;--i:6" data-i18n="cal.e3">Climbing</i>
+            <i class="ev" style="--c:1;--t:30;--h:10;--hue:55;--i:7" data-i18n="cal.e4">Dentist</i>
+            <i class="ev" style="--c:5;--t:58;--h:12;--hue:150;--i:8">Yoga</i>
+            <span class="now"></span>
+          </div>
+        </div>
+      </article>
+
+      <article class="soon-card spot" data-reveal style="--d:1">
+        <div class="soon-copy">
+          <span class="tag tag-soon" data-i18n="tag.wip">In the works</span>
+          <h3>Void Mail</h3>
+          <p data-i18n="mail.p">Mail, in silence. An inbox that asks nothing of you, in the same frame as the rest of the suite.</p>
+        </div>
+        <div class="mail" aria-hidden="true">
+          <div class="mail-list">
+            <div class="mail-row first"><span class="av" style="--h:285">C</span><div><b>Camille</b><i style="--w:70%"></i></div><em>9:41</em><span class="mail-arch"><svg class="ic"><use href="#i-archive"/></svg></span></div>
+            <div class="mail-row"><span class="av" style="--h:150">L</span><div><b>Léa</b><i style="--w:55%"></i></div><em>8:12</em></div>
+            <div class="mail-row"><span class="av" style="--h:55">M</span><div><b>Marc</b><i style="--w:80%"></i></div><em data-i18n="mail.yesterday">Yesterday</em></div>
+            <div class="mail-row"><span class="av" style="--h:235">S</span><div><b data-i18n="mail.studio">Studio</b><i style="--w:45%"></i></div><em data-i18n="mail.yesterday">Yesterday</em></div>
+            <div class="mail-row"><span class="av" style="--h:0">L</span><div><b data-i18n="mail.library">Library</b><i style="--w:62%"></i></div><em data-i18n="mail.mon">Mon</em></div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= COLORS ======================= -->
+<section class="section colors" id="colors">
+  <div class="container colors-grid">
+    <div class="colors-copy" data-reveal>
+      <p class="eyebrow" data-i18n="colors.eyebrow">Personalization</p>
+      <h2 class="h2" data-i18n="colors.title">Your color.<br><span class="muted">Everywhere at once.</span></h2>
+      <p class="lead" data-i18n="colors.lead">Five pastel accent colors, eight window tints. The same in every app of the suite. Try it: this page follows along.</p>
+
+      <div class="picker">
+        <p class="picker-label" data-i18n="colors.accent">Color</p>
+        <div class="swatches" role="radiogroup" data-i18n-attr="aria-label:colors.accentLabel" aria-label="Accent color" data-accent-picker>
+          <button role="radio" data-v="violet" style="--sw:#BAB5F4" data-i18n-attr="aria-label:c.violet" aria-label="Violet"></button>
+          <button role="radio" data-v="blue" style="--sw:#9EC0F0" data-i18n-attr="aria-label:c.blue" aria-label="Blue"></button>
+          <button role="radio" data-v="green" style="--sw:#91CFA3" data-i18n-attr="aria-label:c.green" aria-label="Green"></button>
+          <button role="radio" data-v="orange" style="--sw:#E7B188" aria-label="Orange"></button>
+          <button role="radio" data-v="pink" style="--sw:#EEA5C1" data-i18n-attr="aria-label:c.pink" aria-label="Pink"></button>
+        </div>
+      </div>
+      <div class="picker">
+        <p class="picker-label" data-i18n="colors.tint">Window tint</p>
+        <div class="tints" role="radiogroup" data-i18n-attr="aria-label:colors.tint" aria-label="Window tint" data-tint-picker>
+          <button role="radio" data-v="none" data-i18n="t.none">Neutral</button>
+          <button role="radio" data-v="rose" style="--th:0" data-i18n="t.rose">Rose</button>
+          <button role="radio" data-v="peach" style="--th:55" data-i18n="t.peach">Peach</button>
+          <button role="radio" data-v="lemon" style="--th:95" data-i18n="t.lemon">Lemon</button>
+          <button role="radio" data-v="sage" style="--th:150" data-i18n="t.sage">Sage</button>
+          <button role="radio" data-v="mint" style="--th:185" data-i18n="t.mint">Mint</button>
+          <button role="radio" data-v="sky" style="--th:235" data-i18n="t.sky">Sky</button>
+          <button role="radio" data-v="lavender" style="--th:285" data-i18n="t.lavender">Lavender</button>
+          <button role="radio" data-v="mauve" style="--th:330" data-i18n="t.mauve">Mauve</button>
+        </div>
+      </div>
+      <div class="picker">
+        <p class="picker-label" data-i18n="colors.theme">Theme</p>
+        <div class="seg" role="radiogroup" data-i18n-attr="aria-label:colors.theme" aria-label="Theme" data-theme-picker>
+          <button role="radio" data-v="dark" data-i18n="th.dark">Dark</button>
+          <button role="radio" data-v="light" data-i18n="th.light">Light</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="colors-preview" data-reveal style="--d:1">
+      <div class="mock" data-mock data-w="560" data-h="420">
+        <div class="win mini-win">
+          <div class="mw-halos"></div>
+          <aside class="mw-side">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <div class="mw-field"></div>
+            <div class="mw-row sel"></div><div class="mw-row"></div><div class="mw-row"></div><div class="mw-row short"></div>
+          </aside>
+          <div class="mw-page">
+            <svg class="nt-ecl"><use href="#eclipse"/></svg>
+            <p class="nt-title" data-i18n="void.short">Nothing here. On purpose.</p>
+            <div class="mw-input"><svg class="ic"><use href="#i-search"/></svg><span data-i18n="mock.search">Search or enter address</span></div>
+            <span class="mw-btn" data-i18n="colors.open">Open</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PRINCIPLES ======================= -->
+<section class="section principles">
+  <div class="container">
+    <header class="section-head center" data-reveal>
+      <h2 class="h2" data-i18n="pr.title">What isn't there.</h2>
+      <p class="lead" data-i18n="pr.lead">Void apps are defined above all by what they leave out.</p>
+    </header>
+    <div class="pr-grid">
+      <div class="pr" data-reveal style="--d:0"><b data-i18n="pr1.t">No account</b><p data-i18n="pr1.p">They work from the first launch. Nothing to create, nothing to confirm.</p></div>
+      <div class="pr" data-reveal style="--d:1"><b data-i18n="pr2.t">No server</b><p data-i18n="pr2.p">Your data stays on your Mac. Sync goes through your own iCloud Drive.</p></div>
+      <div class="pr" data-reveal style="--d:2"><b data-i18n="pr3.t">No Chromium</b><p data-i18n="pr3.p">Swift, SwiftUI and Apple's engines. Native apps that start fast.</p></div>
+      <div class="pr" data-reveal style="--d:3"><b data-i18n="pr4.t">Nothing extra</b><p data-i18n="pr4.p">A few megabytes, no needless dependencies. Nothing on screen that doesn't serve.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DOWNLOAD ======================= -->
+<section class="cta force-dark" id="download">
+  <div class="cta-inner" data-reveal>
+    <div class="ecl ecl-sm" aria-hidden="true"><div class="ecl-ring"></div><div class="ecl-core"></div></div>
+    <h2 class="h2" data-i18n="cta.title">Nothing here.<br><span class="muted">On purpose.</span></h2>
+    <p class="lead" data-i18n="cta.lead">Previews for Mac (Apple silicon, macOS 14 or later).</p>
+    <div class="cta-btns">
+      <a class="btn btn-primary" href="https://github.com/antocrne/Void/releases/latest"><svg><use href="#i-download"/></svg><span data-i18n="cta.void">Void for Mac</span></a>
+      <a class="btn btn-ghost" href="https://github.com/antocrne/Void-Notes/releases/latest"><svg><use href="#i-download"/></svg><span data-i18n="cta.notes">Void Notes for Mac</span></a>
+    </div>
+    <p class="fine" data-i18n="cta.fine">Built-in updates, from GitHub. No other server.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-in">
+    <span class="nav-brand"><svg class="nav-logo"><use href="#eclipse"/></svg><span>Void</span></span>
+    <nav data-i18n-attr="aria-label:footer.label" aria-label="Footer">
+      <a href="#browser" data-i18n="nav.browser">Browser</a>
+      <a href="#notes" data-i18n="nav.notes">Notes</a>
+      <a href="#soon" data-i18n="nav.soon">Coming soon</a>
+      <a href="https://github.com/antocrne/Void">GitHub</a>
+    </nav>
+    <div class="footer-lang" role="group" data-i18n-attr="aria-label:footer.lang" aria-label="Language">
+      <button type="button" data-lang="en" lang="en">English</button>
+      <button type="button" data-lang="fr" lang="fr">Français</button>
+    </div>
+    <p>© 2026 Antoine Cornière</p>
+  </div>
+</footer>
+
+<script src="i18n.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
